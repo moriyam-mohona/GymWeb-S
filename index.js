@@ -46,6 +46,7 @@ async function run() {
       });
     };
 
+    // Post User
     app.post("/user", async (req, res) => {
       try {
         const user = req.body;
@@ -57,6 +58,16 @@ async function run() {
       } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Failed to add user." });
+      }
+    });
+    // Get user
+    app.get("/users", verifyToken, async (req, res) => {
+      try {
+        const users = await Users.find().toArray();
+        res.send(users);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to fetch users." });
       }
     });
 
