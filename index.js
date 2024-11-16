@@ -50,6 +50,16 @@ async function run() {
       });
     };
 
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await Users.findOne(query);
+      const isAdmin = user?.Role === "Admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
     // Post User
     app.post("/user", async (req, res) => {
       try {
