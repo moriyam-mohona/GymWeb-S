@@ -5,8 +5,12 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const app = express();
 const port = 5000;
-
-app.use(cors());
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://gym-web-c-8mls.vercel.app"],
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.z3gfp8c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
