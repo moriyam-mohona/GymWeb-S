@@ -138,10 +138,39 @@ async function run() {
       }
     });
 
+    app.patch("/edit-user/:id", verifyToken, async (req, res) => {
+      const { id } = req.params;
+      const { Phone, Address, Country, Specialization, Experience } = req.body;
+
+      try {
+        const updateFields = { ...req.body };
+
+        const result = await Users.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateFields }
+        );
+
+        if (result.modifiedCount === 1) {
+          const updatedUser = await Users.findOne({ _id: new ObjectId(id) });
+          res.send({
+            message: "User updated successfully.",
+            updatedUser,
+          });
+        } else {
+          res
+            .status(404)
+            .send({ message: "User not found or no changes made." });
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send({ message: "Failed to update user." });
+      }
+    });
+
     app.patch("/trainer/:id", async (req, res) => {
       const { id } = req.params;
       const { Salary } = req.body;
-      console.log(Salary);
+
       try {
         await Users.updateOne(
           { _id: new ObjectId(id) },
@@ -167,7 +196,7 @@ async function run() {
         };
 
         const result = await ClassSchedule.insertOne(schedule);
-        console.log(result);
+
         res.send({
           message: "Schedule added successfully",
           insertedId: result.insertedId,
@@ -179,13 +208,24 @@ async function run() {
     });
 
     // Get all schedules
-    app.get("/schedules", verifyToken, async (req, res) => {
+    app.get("/schedules", async (req, res) => {
       try {
         const schedules = await ClassSchedule.find().toArray();
         res.send(schedules);
       } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Failed to fetch schedules." });
+      }
+    });
+
+    // Delete a schedule by ID
+    app.delete("/schedule/:id", verifyToken, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await ClassSchedule.deleteOne({ _id: new ObjectId(id) });
+      } catch (error) {
+        console.error("Error deleting schedule:", error);
+        res.status(500).send({ message: "Failed to delete schedule." });
       }
     });
 
