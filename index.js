@@ -75,11 +75,11 @@ async function run() {
     app.get("/user/:email", verifyToken, async (req, res) => {
       try {
         const email = req.params.email;
-        const user = await Users.findOne({ Email: email }); // Query by the 'Email' field
+        const user = await Users.findOne({ Email: email });
         if (user) {
-          res.send(user); // Successfully found user
+          res.send(user);
         } else {
-          res.status(404).send({ message: "User not found" }); // If no user found
+          res.status(404).send({ message: "User not found" });
         }
       } catch (error) {
         console.error("Error fetching user by email:", error);
@@ -89,9 +89,9 @@ async function run() {
 
     app.delete("/users/:id", verifyToken, async (req, res) => {
       try {
-        const id = req.params.id; // Get the id from the request parameters
-        const query = { _id: new ObjectId(id) }; // Convert id to ObjectId
-        const result = await Users.deleteOne(query); // Delete the user by id
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await Users.deleteOne(query);
 
         if (result.deletedCount === 1) {
           res.send({ message: "User deleted successfully", id });
@@ -103,7 +103,7 @@ async function run() {
         res.status(500).send({ message: "Failed to delete user" });
       }
     });
-
+    // For updating the Status and Role of the User means change a trainee to trainer
     app.patch("/user/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const { Status, Role } = req.body;
@@ -117,7 +117,7 @@ async function run() {
         } else if (Status === "Accepted") {
           const result = await Users.updateOne(
             { _id: new ObjectId(id), Status: "Pending" },
-            { $set: { Status: "Accepted", Role: "Trainer" } } // Update status and role to "Accepted" and "Trainer"
+            { $set: { Status: "Accepted", Role: "Trainer" } }
           );
 
           if (result.modifiedCount > 0) {
@@ -226,6 +226,35 @@ async function run() {
       } catch (error) {
         console.error("Error deleting schedule:", error);
         res.status(500).send({ message: "Failed to delete schedule." });
+      }
+    });
+
+    // Update bookings in the schedule
+    app.patch("/booking-schedule/:id", verifyToken, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { userId } = req.body;
+
+        const result = await ClassSchedule.updateOne(
+          { _id: new ObjectId(id) },
+          { $push: { Bookings: userId } }
+        );
+
+        if (result.modifiedCount === 0) {
+          return res
+            .status(404)
+            .send({ message: "Schedule not found or no changes made." });
+        }
+
+        res.send({
+          message: "Booking added successfully.",
+          id,
+        });
+      } catch (error) {
+        console.error("Error updating booking:", error);
+        res
+          .status(500)
+          .send({ message: "Failed to add booking to the schedule." });
       }
     });
 
