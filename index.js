@@ -72,7 +72,7 @@ async function run() {
       }
     });
 
-    app.get("/user/:email", verifyToken, async (req, res) => {
+    app.get("/user/:email", async (req, res) => {
       try {
         const email = req.params.email;
         const user = await Users.findOne({ Email: email });
