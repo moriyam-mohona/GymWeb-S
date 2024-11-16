@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const port = 5000;
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://gym-web-c-8mls.vercel.app"],
+  origin: ["http://localhost:5173", "https://gym-web-c.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
