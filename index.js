@@ -50,6 +50,17 @@ async function run() {
       });
     };
 
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await Users.findOne(query);
+      const isAdmin = user?.Role === "Admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
     // Post User
     app.post("/user", async (req, res) => {
       try {
@@ -91,7 +102,7 @@ async function run() {
       }
     });
 
-    app.delete("/users/:id", verifyToken, async (req, res) => {
+    app.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
@@ -188,7 +199,7 @@ async function run() {
     });
 
     // Post Schedule
-    app.post("/schedule", verifyToken, async (req, res) => {
+    app.post("/schedule", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const { trainerId, date, startTime, endTime } = req.body;
 
@@ -223,7 +234,7 @@ async function run() {
     });
 
     // Delete a schedule by ID
-    app.delete("/schedule/:id", verifyToken, async (req, res) => {
+    app.delete("/schedule/:id", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await ClassSchedule.deleteOne({ _id: new ObjectId(id) });
