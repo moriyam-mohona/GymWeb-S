@@ -20,7 +20,7 @@ async function run() {
     await client.connect();
     const database = client.db("GymWeb");
     const Users = database.collection("Users");
-    const Trainers = database.collection("Trainers");
+    const ClassSchedule = database.collection("ClassSchedule");
     // jwt related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -151,6 +151,41 @@ async function run() {
         res.send({ message: "Trainer salary updated successfully." });
       } catch (error) {
         res.status(500).send({ message: "Failed to update trainer salary." });
+      }
+    });
+
+    // Post Schedule
+    app.post("/schedule", verifyToken, async (req, res) => {
+      try {
+        const { trainerId, date, startTime, endTime } = req.body;
+
+        const schedule = {
+          trainerId,
+          date,
+          startTime,
+          endTime,
+        };
+
+        const result = await ClassSchedule.insertOne(schedule);
+        console.log(result);
+        res.send({
+          message: "Schedule added successfully",
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("Error inserting schedule:", error);
+        res.status(500).send({ message: "Failed to add schedule." });
+      }
+    });
+
+    // Get all schedules
+    app.get("/schedules", verifyToken, async (req, res) => {
+      try {
+        const schedules = await ClassSchedule.find().toArray();
+        res.send(schedules);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to fetch schedules." });
       }
     });
 
