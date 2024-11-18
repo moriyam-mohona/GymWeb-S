@@ -52,7 +52,7 @@ async function run() {
 
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;
-      const query = { email: email };
+      const query = { Email: email };
       const user = await Users.findOne(query);
       const isAdmin = user?.Role === "Admin";
       if (!isAdmin) {
@@ -60,6 +60,7 @@ async function run() {
       }
       next();
     };
+
     // Post User
     app.post("/user", async (req, res) => {
       try {
@@ -117,6 +118,7 @@ async function run() {
         res.status(500).send({ message: "Failed to delete user" });
       }
     });
+
     // For updating the Status and Role of the User means change a trainee to trainer
     app.patch("/user/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
@@ -201,6 +203,13 @@ async function run() {
     app.post("/schedule", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const { trainerId, date, startTime, endTime } = req.body;
+        const existingSchedules = await ClassSchedule.find({ date }).toArray();
+
+        if (existingSchedules.length >= 5) {
+          return res
+            .status(400)
+            .send({ message: "You cannot add more than 5 schedules per day." });
+        }
 
         const schedule = {
           trainerId,
@@ -237,13 +246,17 @@ async function run() {
       try {
         const { id } = req.params;
         const result = await ClassSchedule.deleteOne({ _id: new ObjectId(id) });
+        if (result.deletedCount === 1) {
+          res.send({ message: "User deleted successfully", id });
+        } else {
+          res.status(404).send({ message: "User not found" });
+        }
       } catch (error) {
         console.error("Error deleting schedule:", error);
         res.status(500).send({ message: "Failed to delete schedule." });
       }
     });
 
-    // Update bookings in the schedule
     app.patch("/booking-schedule/:id", verifyToken, async (req, res) => {
       try {
         const { id } = req.params;
